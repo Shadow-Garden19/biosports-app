@@ -1,0 +1,5 @@
+BIOSPORTS - Ouvre cette adresse sur ton telephone (Chrome)
+
+http://192.168.3.43:8765
+
+(PC et telephone sur le meme Wi-Fi)

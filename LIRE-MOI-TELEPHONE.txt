@@ -1,34 +1,39 @@
 ========================================
-  BIOSPORTS - Ouvrir sur ton Samsung
+  BIOSPORTS - Ouvrir sur ton telephone
 ========================================
 
-ETAPE 1 - Sur le PC
--------------------
-1. Clic DROIT sur "LANCER-EN-ADMIN.bat"
+ETAPE 1 - Autoriser le pare-feu (UNE SEULE FOIS)
+------------------------------------------------
+1. Clic DROIT sur "1-AUTORISER-PARE-FEU-ADMIN.bat"
 2. Choisir "Executer en tant qu'administrateur"
 3. Accepter (Oui) la demande Windows
-4. Laisser la fenetre ouverte (le serveur tourne dedans)
-5. Noter l'adresse affichee "Sur ton tel : http://192.168.x.x:8765"
+4. Tu dois voir "OK. Port 8770 autorise." puis tu peux fermer la fenetre
 
-ETAPE 2 - Sur le Samsung
--------------------------
+ETAPE 2 - Lancer le serveur (sur le PC)
+--------------------------------------
+1. Double-clic sur "OUVRIR-SUR-TELEPHONE-OK.bat"
+2. Laisser la fenetre ouverte (le serveur tourne dedans)
+3. Noter l'adresse affichee "Sur ton tel : http://192.168.x.x:8770"
+
+ETAPE 3 - Sur ton telephone
+----------------------------
 1. Connecte le telephone au MEME Wi-Fi que le PC
-2. Ouvre l'application Chrome
-3. Dans la barre d'adresse, tape exactement l'adresse notee
-   (exemple : http://192.168.3.43:8765)
+2. Ouvre Chrome (ou Safari sur iPhone)
+3. Dans la barre d'adresse, tape l'adresse notee
+   (exemple : http://192.168.3.43:8770)
 4. Appuie sur Entree / Aller
 
 Si ca ne marche pas
 -------------------
-- Teste d'abord : http://TON_IP:8765/test
+- Verifie que tu as bien fait l'ETAPE 1 (pare-feu en admin)
+- Teste d'abord : http://TON_IP:8770/test
   (remplace TON_IP par l'IP affichee dans la fenetre)
   Si /test s'ouvre sur le telephone = reseau OK, essaie ensuite /
 
 - Verifie que telephone et PC sont sur le meme reseau Wi-Fi
   (pas de "invites" ou "hotspot" different)
 
-- Desactive temporairement l'antivirus ou le pare-feu Windows
-  pour tester (Parametres > Pare-feu et protection reseau)
+- Desactive temporairement l'antivirus pour tester
 
-- Sur certains box (Free, Orange...), desactive "Isolation des clients"
+- Sur certaines box (Free, Orange...), desactive "Isolation des clients"
   dans les parametres Wi-Fi de la box si l'option existe

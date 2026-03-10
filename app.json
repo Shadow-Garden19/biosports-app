@@ -2,7 +2,7 @@
   "expo": {
     "name": "BIOSPORTS",
     "slug": "biosports-app",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "splash": {
@@ -10,6 +10,7 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
+      "buildNumber": "2",
       "supportsTablet": true,
       "bundleIdentifier": "com.biosports.app",
       "infoPlist": {
@@ -17,6 +18,7 @@
       }
     },
     "android": {
+      "versionCode": 2,
       "adaptiveIcon": {
         "backgroundColor": "#0D0D0D"
       },

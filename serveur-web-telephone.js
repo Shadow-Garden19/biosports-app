@@ -6,7 +6,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = 8770;
+const PORT = 8765;
 const DIST = path.join(__dirname, 'dist');
 
 const MIMES = {
@@ -55,9 +55,10 @@ const server = http.createServer((req, res) => {
   let urlPath = req.url.split('?')[0].replace(/^\//, '');
   if (urlPath === '') urlPath = 'index.html';
   const safePath = path.normalize(urlPath).replace(/^(\.\.(\/|\\))+/, '');
-  const filePath = path.join(DIST, safePath);
+  const filePath = path.resolve(path.join(DIST, safePath));
+  const distResolved = path.resolve(DIST);
 
-  if (!filePath.startsWith(DIST)) {
+  if (!filePath.startsWith(distResolved)) {
     res.writeHead(403);
     res.end('Forbidden');
     return;
@@ -92,15 +93,24 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, '0.0.0.0', () => {
   const ip = getLocalIP();
+  const urlTel = 'http://' + ip + ':' + PORT;
+  const urlTest = urlTel + '/test';
   console.log('');
   console.log('  BIOSPORTS - Serveur pour telephone');
   console.log('  =================================');
   console.log('');
   console.log('  Sur ce PC :     http://localhost:' + PORT);
-  console.log('  Sur ton tel :   http://' + ip + ':' + PORT);
-  console.log('  Test tel :      http://' + ip + ':' + PORT + '/test');
+  console.log('  Sur ton tel :   ' + urlTel);
+  console.log('  Test tel :      ' + urlTest);
   console.log('');
-  console.log('  Sur ton Samsung : ouvre Chrome et tape l\'adresse "Sur ton tel".');
   console.log('  (Telephone et PC sur le meme Wi-Fi)');
   console.log('');
+  // Ecrire l'URL dans un fichier pour copier facilement
+  const adresseFile = path.join(__dirname, 'ADRESSE-POUR-TELEPHONE.txt');
+  const contenu = 'BIOSPORTS - Ouvre cette adresse sur ton telephone (Chrome)\n\n' + urlTel + '\n\n(PC et telephone sur le meme Wi-Fi)\n';
+  try {
+    fs.writeFileSync(adresseFile, contenu, 'utf8');
+    console.log('  URL enregistree dans : ADRESSE-POUR-TELEPHONE.txt');
+    console.log('');
+  } catch (e) {}
 });

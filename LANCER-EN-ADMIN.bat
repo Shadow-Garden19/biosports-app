@@ -1,4 +1,12 @@
 @echo off
+echo.
+echo ========================================
+echo   BIOSPORTS - Pour ouvrir sur le tel
+echo ========================================
+echo   Si Windows demande une autorisation,
+echo   cliquez Oui pour ouvrir le pare-feu.
+echo ========================================
+echo.
 :: Demande les droits administrateur pour autoriser le pare-feu
 >nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
 if '%errorlevel%' neq '0' (
