@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Envoyer le lien BIOSPORTS par mail</title>
+  <style>
+    body {
+      font-family: Segoe UI, sans-serif;
+      max-width: 500px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .box {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 { font-size: 1.2rem; color: #333; margin-top: 0; }
+    p { color: #666; line-height: 1.5; }
+    a.bouton {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 12px 24px;
+      background: #2563eb;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+    a.bouton:hover { background: #1d4ed8; }
+    .lien {
+      margin-top: 12px;
+      padding: 10px;
+      background: #f0f9ff;
+      border-radius: 6px;
+      word-break: break-all;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>📧 Envoyer le lien BIOSPORTS à votre téléphone</h1>
+    <p>Cliquez sur le bouton ci-dessous : votre logiciel de messagerie (Outlook, Mail, etc.) s’ouvrira avec un mail déjà préparé à l’adresse <strong>foutelethan18@gmail.com</strong>.</p>
+    <p>Il vous suffira de cliquer sur <strong>Envoyer</strong>, puis d’ouvrir ce mail sur votre Samsung et de cliquer sur le lien.</p>
+    <p><strong>Important :</strong> votre téléphone doit être sur le <strong>même Wi‑Fi</strong> que votre PC.</p>
+    <a class="bouton" href="#" id="mailto">Ouvrir mon logiciel de mail</a>
+    <p style="margin-top: 20px; font-size: 0.85rem;">Vous pouvez aussi copier le lien ci-dessous et vous l’envoyer vous-même :</p>
+    <div class="lien" id="lien">http://192.168.3.43:8083</div>
+  </div>
+  <script>
+    var url = 'http://192.168.3.43:8083';
+    var to = 'foutelethan18@gmail.com';
+    var subject = 'Lien BIOSPORTS - Ouvrir sur mon téléphone';
+    var body = 'Ouvre ce lien dans Chrome sur ton Samsung (même Wi-Fi que le PC) :\n\n' + url;
+    document.getElementById('mailto').href = 'mailto:' + to + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  </script>
+</body>
+</html>

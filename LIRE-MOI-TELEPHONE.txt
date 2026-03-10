@@ -1,0 +1,34 @@
+========================================
+  BIOSPORTS - Ouvrir sur ton Samsung
+========================================
+
+ETAPE 1 - Sur le PC
+-------------------
+1. Clic DROIT sur "LANCER-EN-ADMIN.bat"
+2. Choisir "Executer en tant qu'administrateur"
+3. Accepter (Oui) la demande Windows
+4. Laisser la fenetre ouverte (le serveur tourne dedans)
+5. Noter l'adresse affichee "Sur ton tel : http://192.168.x.x:8765"
+
+ETAPE 2 - Sur le Samsung
+-------------------------
+1. Connecte le telephone au MEME Wi-Fi que le PC
+2. Ouvre l'application Chrome
+3. Dans la barre d'adresse, tape exactement l'adresse notee
+   (exemple : http://192.168.3.43:8765)
+4. Appuie sur Entree / Aller
+
+Si ca ne marche pas
+-------------------
+- Teste d'abord : http://TON_IP:8765/test
+  (remplace TON_IP par l'IP affichee dans la fenetre)
+  Si /test s'ouvre sur le telephone = reseau OK, essaie ensuite /
+
+- Verifie que telephone et PC sont sur le meme reseau Wi-Fi
+  (pas de "invites" ou "hotspot" different)
+
+- Desactive temporairement l'antivirus ou le pare-feu Windows
+  pour tester (Parametres > Pare-feu et protection reseau)
+
+- Sur certains box (Free, Orange...), desactive "Isolation des clients"
+  dans les parametres Wi-Fi de la box si l'option existe

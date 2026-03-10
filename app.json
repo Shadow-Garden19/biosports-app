@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "BIOSPORTS",
+    "slug": "biosports-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "backgroundColor": "#0D0D0D"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.biosports.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "BIOSPORTS utilise votre position pour trouver des partenaires sportifs à proximité."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0D0D0D"
+      },
+      "package": "com.biosports.app",
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+    },
+    "plugins": ["expo-location"]
+  }
+}

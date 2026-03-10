@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BIOSPORTS - Aperçu</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0D0D0D;
+      color: #FFFFFF;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .screen { display: none; min-height: 100vh; padding-bottom: 80px; }
+    .screen.active { display: block; animation: fadeIn 0.5s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    .header {
+      background: #1A1A1A;
+      padding: 14px 20px;
+      border-bottom: 1px solid #333;
+    }
+    .header .bio { color: #C9A227; font-weight: 700; font-size: 18px; }
+    .header .sports { color: #F5F5F5; margin-left: 2px; }
+    .header .slogan { font-size: 10px; color: #808080; font-weight: 400; letter-spacing: 1.5px; margin-top: 4px; }
+
+    /* Onboarding */
+    #onboarding { max-width: 420px; margin: 0 auto; }
+    .onb-slides { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; }
+    .onb-slide { min-width: 100%; scroll-snap-align: start; }
+    .onb-img-wrap { height: 320px; position: relative; overflow: hidden; }
+    .onb-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .onb-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); }
+    .onb-text { padding: 24px 20px; }
+    .onb-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .onb-subtitle { color: #B3B3B3; font-size: 15px; line-height: 1.5; }
+    .onb-footer { padding: 20px; position: fixed; bottom: 0; left: 0; right: 0; max-width: 420px; margin: 0 auto; background: #0D0D0D; border-top: 1px solid #333; }
+    .onb-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+    .onb-dot { width: 8px; height: 8px; border-radius: 4px; background: #333; transition: all 0.3s ease; }
+    .onb-dot.active { width: 24px; background: #C9A227; }
+    .onb-btn { width: 100%; padding: 14px; background: #C9A227; color: #0D0D0D; border: none; border-radius: 12px; font-weight: 600; font-size: 16px; cursor: pointer; transition: transform 0.2s, opacity 0.2s; }
+    .onb-btn:hover { transform: scale(1.02); opacity: 0.95; }
+
+    /* Welcome */
+    .hero-wrap { height: 280px; position: relative; margin-bottom: 24px; }
+    .hero-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); }
+    .hero-content { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+    .hero-content .bio { font-size: 28px; font-weight: 700; color: #C9A227; letter-spacing: 2px; }
+    .hero-content .sports { font-size: 28px; font-weight: 700; color: #F5F5F5; letter-spacing: 2px; }
+    .hero-content .slogan { font-size: 11px; color: #808080; letter-spacing: 1.5px; margin-top: 8px; }
+    .hero-tagline { color: #B3B3B3; margin-top: 12px; }
+    .form-wrap { padding: 0 20px; animation: slideUp 0.6s ease; }
+    .form-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+    input, .btn { width: 100%; padding: 14px 16px; border-radius: 12px; font-size: 16px; margin-bottom: 12px; background: #1A1A1A; border: 1px solid #333; color: #fff; }
+    input::placeholder { color: #808080; }
+    .btn { background: #C9A227; color: #0D0D0D; border: none; font-weight: 600; cursor: pointer; text-align: center; transition: opacity 0.2s; }
+    .btn:active { opacity: 0.9; }
+    .link { text-align: center; margin-top: 16px; color: #C9A227; cursor: pointer; font-size: 14px; }
+
+    /* Register */
+    .progress-wrap { padding: 20px 20px 12px; }
+    .progress-bar { height: 4px; background: #333; border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; background: #C9A227; border-radius: 2px; transition: width 0.4s ease; }
+    .step-label { font-size: 12px; color: #808080; margin-top: 6px; }
+    .reg-scroll { padding: 0 20px 48px; }
+    .hero-reg { height: 160px; border-radius: 16px; overflow: hidden; margin-bottom: 20px; position: relative; }
+    .hero-reg img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-reg .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.45); }
+    .hero-reg .title { position: absolute; bottom: 36px; left: 16px; right: 16px; font-size: 20px; font-weight: 700; color: #fff; }
+    .hero-reg .sub { position: absolute; bottom: 16px; left: 16px; font-size: 14px; color: rgba(255,255,255,0.9); }
+    .section-intro { font-size: 13px; color: #C9A227; font-weight: 600; margin-bottom: 8px; }
+    .club-row { display: flex; gap: 12px; overflow-x: auto; padding: 4px 0 24px; margin: 0 -20px; scroll-snap-type: x mandatory; }
+    .club-row::-webkit-scrollbar { display: none; }
+    .club-card { min-width: 180px; border-radius: 12px; overflow: hidden; background: #1A1A1A; scroll-snap-align: start; }
+    .club-card img { width: 100%; height: 110px; object-fit: cover; }
+    .club-card span { display: block; padding: 8px; font-size: 12px; color: #808080; }
+    .reg-title { font-size: 22px; font-weight: 700; margin-bottom: 16px; }
+    .reg-label { font-size: 13px; color: #808080; margin-top: 16px; margin-bottom: 8px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .chip { padding: 8px 14px; border-radius: 999px; background: #1A1A1A; border: 1px solid #333; font-size: 13px; cursor: pointer; color: #fff; transition: all 0.2s; }
+    .chip.selected { background: #C9A227; border-color: #C9A227; color: #0D0D0D; }
+    .btn-secondary { background: transparent; color: #C9A227; margin-top: 8px; }
+    .reg-link { margin-top: 24px; }
+
+    /* Home */
+    .content { max-width: 420px; margin: 0 auto; padding: 16px; padding-bottom: 70px; }
+    .logo-wrap { text-align: center; margin-bottom: 12px; }
+    .greeting { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .subtitle { color: #808080; margin-bottom: 20px; }
+    .searchBox { background: #1A1A1A; border: 1px solid #333; border-radius: 12px; padding: 14px; color: #808080; margin-bottom: 20px; }
+    .sectionTitle { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
+    .card { background: #1A1A1A; border-radius: 12px; padding: 16px; border: 1px solid #333; margin-bottom: 12px; cursor: pointer; transition: transform 0.2s; }
+    .card:active { transform: scale(0.99); }
+    .cardSport { font-size: 18px; font-weight: 600; }
+    .cardType { font-size: 14px; color: #C9A227; }
+    .cardDate, .cardLevel { font-size: 14px; color: #808080; margin-top: 4px; }
+    .tabs { position: fixed; bottom: 0; left: 0; right: 0; background: #1A1A1A; border-top: 1px solid #333; display: flex; justify-content: space-around; padding: 10px 0 20px; max-width: 420px; margin: 0 auto; }
+    .tab { font-size: 12px; color: #808080; cursor: pointer; }
+    .tab.active { color: #C9A227; font-weight: 600; }
+    .avatar { width: 80px; height: 80px; border-radius: 50%; background: #C9A227; color: #0D0D0D; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; margin: 0 auto 12px; }
+    .profileName { text-align: center; font-size: 20px; font-weight: 700; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <!-- ONBOARDING -->
+  <div id="onboarding" class="screen active">
+    <div class="header">
+      <span class="bio">BIO</span><span class="sports">SPORTS</span>
+      <div class="slogan">PERFORMANCE • ÉQUILIBRE • PASSION</div>
+    </div>
+    <div class="onb-slides" id="onbSlides">
+      <div class="onb-slide">
+        <div class="onb-img-wrap">
+          <img src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800" alt="Tennis">
+          <div class="onb-overlay"></div>
+        </div>
+        <div class="onb-text">
+          <p class="onb-title">Trouvez des partenaires</p>
+          <p class="onb-subtitle">Des sportifs près de chez vous, au même niveau et disponibles quand vous l’êtes.</p>
+        </div>
+      </div>
+      <div class="onb-slide">
+        <div class="onb-img-wrap">
+          <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800" alt="Club">
+          <div class="onb-overlay"></div>
+        </div>
+        <div class="onb-text">
+          <p class="onb-title">Réservez dans des clubs</p>
+          <p class="onb-subtitle">Terrains et salles partenaires, à mi-chemin. Réservation et paiement en un clic.</p>
+        </div>
+      </div>
+      <div class="onb-slide">
+        <div class="onb-img-wrap">
+          <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800" alt="Sport">
+          <div class="onb-overlay"></div>
+        </div>
+        <div class="onb-text">
+          <p class="onb-title">Rejoignez la communauté</p>
+          <p class="onb-subtitle">Matchs amicaux, entraînements ou compétitions. La passion du sport, ensemble.</p>
+        </div>
+      </div>
+    </div>
+    <div class="onb-footer">
+      <div class="onb-dots" id="onbDots">
+        <span class="onb-dot active"></span>
+        <span class="onb-dot"></span>
+        <span class="onb-dot"></span>
+      </div>
+      <button class="onb-btn" id="onbBtn">Suivant</button>
+    </div>
+  </div>
+
+  <!-- WELCOME / LOGIN -->
+  <div id="welcome" class="screen">
+    <div class="hero-wrap">
+      <img src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800" alt="Sport">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <span class="bio">BIO</span><span class="sports">SPORTS</span>
+        <div class="slogan">PERFORMANCE • ÉQUILIBRE • PASSION</div>
+        <p class="hero-tagline">Trouvez votre partenaire sportif</p>
+      </div>
+    </div>
+    <div class="form-wrap">
+      <p class="form-title">Connexion</p>
+      <input type="email" placeholder="Email" value="test@biosports.fr">
+      <input type="password" placeholder="Mot de passe" value="••••••">
+      <button class="btn" onclick="showScreen('home')">Se connecter</button>
+      <p class="link" onclick="showScreen('register')">Pas encore de compte ? S'inscrire</p>
+    </div>
+  </div>
+
+  <!-- REGISTER -->
+  <div id="register" class="screen">
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="regProgress" style="width:50%"></div></div>
+      <p class="step-label" id="regStepLabel">Étape 2 sur 2</p>
+    </div>
+    <div class="reg-scroll">
+      <p class="section-intro">Tous les sports disponibles</p>
+      <div class="club-row">
+        <div class="club-card"><img src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=600" alt="Tennis"><span>Tennis</span></div>
+        <div class="club-card"><img src="https://images.unsplash.com/photo-1622163642998-1f32b690a933?w=600" alt="Padel"><span>Padel</span></div>
+        <div class="club-card"><img src="https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600" alt="Basketball"><span>Basketball</span></div>
+        <div class="club-card"><img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=600" alt="Football"><span>Football</span></div>
+        <div class="club-card"><img src="https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=600" alt="Badminton"><span>Badminton</span></div>
+        <div class="club-card"><img src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600" alt="Squash"><span>Squash</span></div>
+        <div class="club-card"><img src="https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=600" alt="Volleyball"><span>Volleyball</span></div>
+        <div class="club-card"><img src="https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=600" alt="Running"><span>Running</span></div>
+        <div class="club-card"><img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600" alt="Musculation"><span>Musculation</span></div>
+        <div class="club-card"><img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600" alt="Autre"><span>Autre</span></div>
+      </div>
+      <p class="reg-title">Mon profil sportif</p>
+      <p class="reg-label">Sports et niveau</p>
+      <div class="chips">
+        <span class="chip selected">Tennis</span>
+        <span class="chip">Padel</span>
+        <span class="chip">Basket</span>
+      </div>
+      <p class="reg-label">Préférences</p>
+      <div class="chips">
+        <span class="chip selected">Match amical</span>
+        <span class="chip">Entraînement</span>
+      </div>
+      <button class="btn">S'inscrire</button>
+      <button class="btn btn-secondary" onclick="showScreen('welcome')">Retour</button>
+      <p class="link reg-link" onclick="showScreen('welcome')">Déjà un compte ? Se connecter</p>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div id="home" class="screen">
+    <div class="header">
+      <span class="bio">BIO</span><span class="sports">SPORTS</span>
+    </div>
+    <div class="content">
+      <p class="greeting">Bonjour, Marie !</p>
+      <p class="subtitle">Trouvez une session près de chez vous</p>
+      <div class="searchBox">Sport, date, lieu, niveau...</div>
+      <p class="sectionTitle">Sessions à proximité</p>
+      <div class="card" onclick="showScreen('sessionDetail')">
+        <p class="cardSport">Tennis</p>
+        <p class="cardType">Match amical</p>
+        <p class="cardDate">Samedi 14 mars à 16h — Paris</p>
+      </div>
+      <div class="card">
+        <p class="cardSport">Padel</p>
+        <p class="cardType">Entraînement</p>
+        <p class="cardDate">Dimanche 15 mars à 14h — Paris</p>
+      </div>
+    </div>
+    <div class="tabs">
+      <span class="tab active">Accueil</span>
+      <span class="tab">Recherche</span>
+      <span class="tab">Lieux</span>
+      <span class="tab">Messages</span>
+      <span class="tab">Profil</span>
+    </div>
+  </div>
+
+  <div id="sessionDetail" class="screen">
+    <div class="content">
+      <p class="link" onclick="showScreen('home')">← Retour</p>
+      <div class="card" style="margin-top:16px">
+        <p class="cardSport">Tennis</p>
+        <p class="cardType">Match amical — Samedi 14 mars 16h</p>
+      </div>
+      <p class="sectionTitle">Lieu proposé</p>
+      <div class="card">
+        <p class="cardSport">Tennis Club Paris 1er</p>
+        <p class="cardDate">12 Rue du Sport — 20 €/h (part : 10 €)</p>
+        <button class="btn" style="margin-top:8px">Réserver ce terrain</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let onbIndex = 0;
+    const onbSlides = document.getElementById('onbSlides');
+    const onbBtn = document.getElementById('onbBtn');
+    const onbDots = document.querySelectorAll('.onb-dot');
+
+    function updateOnb() {
+      const w = onbSlides.clientWidth || window.innerWidth;
+      onbSlides.scrollTo({ left: onbIndex * w, behavior: 'smooth' });
+      onbDots.forEach((d, i) => d.classList.toggle('active', i === onbIndex));
+      onbBtn.textContent = onbIndex === 2 ? 'Commencer' : 'Suivant';
+    }
+
+    onbSlides.addEventListener('scroll', () => {
+      const w = onbSlides.clientWidth || window.innerWidth;
+      onbIndex = Math.round(onbSlides.scrollLeft / w);
+      updateOnb();
+    });
+
+    onbBtn.addEventListener('click', () => {
+      if (onbIndex < 2) { onbIndex++; updateOnb(); }
+      else { document.getElementById('onboarding').classList.remove('active'); document.getElementById('welcome').classList.add('active'); }
+    });
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      const el = document.getElementById(id);
+      if (el) el.classList.add('active');
+      document.querySelectorAll('.tab').forEach((t, i) => {
+        t.classList.toggle('active', id === 'home' && ['home','search','venues','home','profile'][i] === 'home');
+      });
+    }
+  </script>
+</body>
+</html>
