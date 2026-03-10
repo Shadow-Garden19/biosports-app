@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,9 +10,10 @@ import {
   Platform,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { useConversations } from '../context/ConversationsContext';
 import { colors } from '../theme/colors';
 import { theme } from '../theme';
-import { mockMessages, mockUsers, mockConversations } from '../data/mockData';
+import { mockUsers } from '../data/mockData';
 
 export function ChatScreen({
   conversationId,
@@ -22,14 +23,29 @@ export function ChatScreen({
   onBack: () => void;
 }) {
   const { user } = useAuth();
+  const { conversations, getMessages, addMessage } = useConversations();
   const [input, setInput] = useState('');
-  const baseMessages = mockMessages[conversationId] ?? [];
-  const [localMessages, setLocalMessages] = useState<typeof baseMessages>([]);
-  const messages = [...baseMessages, ...localMessages];
+  const listRef = useRef<FlatList>(null);
+  const rawMessages = getMessages(conversationId);
+  const messages = [...rawMessages].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
 
-  const conv = mockConversations.find((c) => c.id === conversationId);
+  const conv = conversations.find((c) => c.id === conversationId);
+  const isGroup = (conv?.participants.length ?? 0) > 2;
   const otherId = conv?.participants.find((id) => id !== user?.id);
   const other = mockUsers.find((u) => u.id === otherId);
+  const headerTitle = isGroup
+    ? `Groupe (${conv!.participants.length} participants)`
+    : other
+      ? `${other.prenom} ${other.nom}`
+      : 'Chat';
+
+  const getSenderName = (expediteurId: string) => {
+    if (expediteurId === user?.id) return 'Vous';
+    const u = mockUsers.find((x) => x.id === expediteurId);
+    return u ? `${u.prenom} ${u.nom}` : 'Inconnu';
+  };
 
   const handleSend = () => {
     if (!input.trim() || !user) return;
@@ -41,14 +57,23 @@ export function ChatScreen({
       createdAt: new Date().toISOString(),
       lu: false,
     };
-    setLocalMessages((prev) => [...prev, newMsg]);
+    addMessage(conversationId, newMsg);
     setInput('');
+    setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
   };
+
+  useEffect(() => {
+    const t = setTimeout(() => listRef.current?.scrollToEnd({ animated: false }), 200);
+    return () => clearTimeout(t);
+  }, [conversationId]);
 
   const renderMessage = ({ item }: { item: (typeof messages)[0] }) => {
     const isMe = item.expediteurId === user?.id;
     return (
       <View style={[styles.messageRow, isMe && styles.messageRowMe]}>
+        {isGroup && (
+          <Text style={[styles.senderName, isMe && styles.senderNameMe]}>{getSenderName(item.expediteurId)}</Text>
+        )}
         <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleOther]}>
           <Text style={[styles.bubbleText, isMe && styles.bubbleTextMe]}>
             {item.contenu}
@@ -68,15 +93,15 @@ export function ChatScreen({
         <TouchableOpacity onPress={onBack}>
           <Text style={styles.backText}>← Retour</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          {other ? `${other.prenom} ${other.nom}` : 'Chat'}
-        </Text>
+        <Text style={styles.headerTitle}>{headerTitle}</Text>
       </View>
       <FlatList
+        ref={listRef}
         data={messages}
         keyExtractor={(item) => item.id}
         renderItem={renderMessage}
         contentContainerStyle={styles.messages}
+        onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
       />
       <View style={styles.inputRow}>
         <TextInput
@@ -110,6 +135,13 @@ const styles = StyleSheet.create({
   messages: { padding: theme.spacing.md, paddingBottom: theme.spacing.md },
   messageRow: { marginBottom: theme.spacing.sm, alignItems: 'flex-start' },
   messageRowMe: { alignItems: 'flex-end' },
+  senderName: {
+    fontSize: theme.fontSize.xs,
+    color: colors.textMuted,
+    marginBottom: 2,
+    marginLeft: theme.spacing.sm,
+  },
+  senderNameMe: { marginLeft: 0, marginRight: theme.spacing.sm, textAlign: 'right' },
   bubble: {
     maxWidth: '80%',
     padding: theme.spacing.md,

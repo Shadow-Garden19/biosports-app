@@ -4,6 +4,8 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './src/context/AuthContext';
 import { ChatbotProvider } from './src/context/ChatbotContext';
+import { ClubBookingProvider } from './src/context/ClubBookingContext';
+import { ConversationsProvider } from './src/context/ConversationsContext';
 import { SessionsProvider } from './src/context/SessionsContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { SplashScreen } from './src/components/SplashScreen';
@@ -16,10 +18,14 @@ export default function App() {
       <SafeAreaProvider>
         <AuthProvider>
           <ChatbotProvider>
-            <SessionsProvider>
-              <StatusBar style="light" />
-              <AppNavigator />
-            </SessionsProvider>
+            <ClubBookingProvider>
+              <ConversationsProvider>
+                <SessionsProvider>
+                  <StatusBar style="light" />
+                  <AppNavigator />
+                </SessionsProvider>
+              </ConversationsProvider>
+            </ClubBookingProvider>
           </ChatbotProvider>
         </AuthProvider>
       </SafeAreaProvider>

@@ -1,45 +1,83 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors } from '../theme/colors';
 import { theme } from '../theme';
 import { SPORTS_LABELS } from '../types';
-import { mockLieux } from '../data/mockData';
+import { useClubBooking } from '../context/ClubBookingContext';
+import { TENNIS_CLUB_PARIS_1ER_ID, TENNIS_CLUB_PARIS_1ER_IMAGES, PADEL_ARENA_ID, PADEL_ARENA_IMAGES } from '../constants/clubGalleries';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 
 export function VenuesScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { venues, loadingVenues, error } = useClubBooking();
+
+  if (loadingVenues) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={styles.loadingText}>Chargement des lieux…</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Lieux et clubs partenaires</Text>
       <Text style={styles.subtitle}>
-        Réservation rapide, prix partagés entre joueurs.
+        Réservation synchronisée avec le planning du club. Pas de double réservation.
       </Text>
-      {mockLieux.map((lieu) => (
+      {error ? (
+        <View style={styles.errorBox}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      ) : null}
+      {venues.map((lieu) => (
         <TouchableOpacity
           key={lieu.id}
           style={styles.card}
           onPress={() => navigation.navigate('Booking', { lieuId: lieu.id })}
           activeOpacity={0.8}
         >
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardName}>{lieu.nom}</Text>
-            {lieu.partenariat && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>Partenaire</Text>
-              </View>
-            )}
+          {(lieu.id === TENNIS_CLUB_PARIS_1ER_ID && TENNIS_CLUB_PARIS_1ER_IMAGES[0]) ? (
+            <Image
+              source={TENNIS_CLUB_PARIS_1ER_IMAGES[0]}
+              style={styles.cardImage}
+              resizeMode="cover"
+            />
+          ) : (lieu.id === PADEL_ARENA_ID && PADEL_ARENA_IMAGES[0]) ? (
+            <Image
+              source={PADEL_ARENA_IMAGES[0]}
+              style={styles.cardImage}
+              resizeMode="cover"
+            />
+          ) : lieu.imageUrl ? (
+            <Image
+              source={{ uri: lieu.imageUrl }}
+              style={styles.cardImage}
+              resizeMode="cover"
+            />
+          ) : null}
+          <View style={styles.cardBody}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardName}>{lieu.nom}</Text>
+              {lieu.partenariat && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>Partenaire</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.cardAddress}>{lieu.adresse}</Text>
+            <View style={styles.sportsRow}>
+              {lieu.sports.map((s) => (
+                <View key={s} style={styles.sportTag}>
+                  <Text style={styles.sportTagText}>{SPORTS_LABELS[s]}</Text>
+                </View>
+              ))}
+            </View>
+            <Text style={styles.cardPrice}>{lieu.prixHoraire} € / heure</Text>
           </View>
-          <Text style={styles.cardAddress}>{lieu.adresse}</Text>
-          <View style={styles.sportsRow}>
-            {lieu.sports.map((s) => (
-              <View key={s} style={styles.sportTag}>
-                <Text style={styles.sportTagText}>{SPORTS_LABELS[s]}</Text>
-              </View>
-            ))}
-          </View>
-          <Text style={styles.cardPrice}>{lieu.prixHoraire} € / heure</Text>
         </TouchableOpacity>
       ))}
     </ScrollView>
@@ -63,10 +101,18 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
     marginBottom: theme.spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
+    overflow: 'hidden',
+  },
+  cardImage: {
+    width: '100%',
+    height: 160,
+    backgroundColor: colors.surfaceElevated,
+  },
+  cardBody: {
+    padding: theme.spacing.md,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   cardName: { fontSize: theme.fontSize.lg, fontWeight: '600', color: colors.text },
@@ -92,4 +138,13 @@ const styles = StyleSheet.create({
     color: colors.primary,
     marginTop: theme.spacing.sm,
   },
+  centered: { justifyContent: 'center', alignItems: 'center', padding: theme.spacing.xl },
+  loadingText: { color: colors.textSecondary, marginTop: theme.spacing.md },
+  errorBox: {
+    backgroundColor: 'rgba(198, 40, 40, 0.15)',
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    marginBottom: theme.spacing.md,
+  },
+  errorText: { color: colors.error, fontSize: theme.fontSize.sm },
 });

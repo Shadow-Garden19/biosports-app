@@ -46,6 +46,8 @@ export interface Localisation {
 
 export interface Utilisateur {
   id: string;
+  /** Identifiant unique pour la recherche d'amis (ex: marie_dupont → affiché @marie_dupont). */
+  username: string;
   email: string;
   nom: string;
   prenom: string;
@@ -63,6 +65,7 @@ export interface Utilisateur {
 export interface SessionSportive {
   id: string;
   sportId: SportId;
+  /** Initiateur/organisateur de la session (gère les participants). */
   createurId: string;
   date: string;       // ISO date
   heure: string;      // "16:00"
@@ -71,6 +74,10 @@ export interface SessionSportive {
   localisation: Localisation;
   lieuId?: string;    // club partenaire
   participantsIds: string[];
+  /** Ids des participants autorisés à ajouter d'autres personnes au groupe/chat. */
+  canInviteIds?: string[];
+  /** Chat de groupe lié à la session (créé à la réservation ou quand un groupe existe). */
+  conversationId?: string;
   statut: 'ouverte' | 'complete' | 'terminee' | 'annulee';
   createdAt: string;
 }
@@ -84,7 +91,12 @@ export interface Lieu {
   sports: SportId[];
   prixHoraire: number;
   partenariat: boolean;
+  /** Photo principale (liste des lieux, couverture). */
   imageUrl?: string;
+  /** Galerie d’images du club (terrains, club house, installations) pour la fiche club. */
+  gallery?: string[];
+  /** Légendes optionnelles pour chaque image de la galerie (même ordre que gallery). */
+  galleryLabels?: string[];
 }
 
 export interface Message {

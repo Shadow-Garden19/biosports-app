@@ -150,6 +150,9 @@ export function SearchScreen() {
               <Text style={styles.userName}>
                 {u.prenom} {u.nom}
               </Text>
+              {u.username ? (
+                <Text style={styles.userHandle}>@{u.username}</Text>
+              ) : null}
               <Text style={styles.userSports}>
                 {u.sports.map((s) => SPORTS_LABELS[s.sportId]).join(', ')}
               </Text>
@@ -241,6 +244,7 @@ const styles = StyleSheet.create({
   userAvatarText: { color: '#fff', fontWeight: '600' },
   userInfo: { flex: 1 },
   userName: { fontSize: theme.fontSize.md, fontWeight: '600', color: colors.text },
+  userHandle: { fontSize: theme.fontSize.sm, color: colors.primary, marginTop: 2 },
   userSports: { fontSize: theme.fontSize.sm, color: colors.textSecondary },
   userRating: { fontSize: theme.fontSize.sm, color: colors.secondary, marginTop: 2 },
 });

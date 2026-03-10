@@ -3,6 +3,7 @@ import type { Utilisateur, SessionSportive, Lieu, Conversation, Message, Accesso
 export const mockUsers: Utilisateur[] = [
   {
     id: '2',
+    username: 'thomas_martin',
     email: 'thomas@test.fr',
     nom: 'Martin',
     prenom: 'Thomas',
@@ -22,6 +23,7 @@ export const mockUsers: Utilisateur[] = [
   },
   {
     id: '3',
+    username: 'sophie_bernard',
     email: 'sophie@test.fr',
     nom: 'Bernard',
     prenom: 'Sophie',
@@ -60,6 +62,8 @@ export const mockSessions: SessionSportive[] = [
     localisation: { latitude: 48.8566, longitude: 2.3522, ville: 'Paris' },
     lieuId: 'lieu1',
     participantsIds: ['1', '2'],
+    conversationId: 'c1',
+    canInviteIds: ['2'],
     statut: 'ouverte',
     createdAt: new Date().toISOString(),
   },
@@ -118,6 +122,11 @@ export const mockSessions: SessionSportive[] = [
   },
 ];
 
+// Galeries spécifiques à chaque club (photos web – terrains, installations, club house, entrée)
+// Tennis Club Paris 1er : courts tennis, court padel, installations type club
+// Padel Arena : courts padel, salles indoor, espaces communs
+const U = (id: string) => `https://images.unsplash.com/photo-${id}?w=800`;
+
 export const mockLieux: Lieu[] = [
   {
     id: 'lieu1',
@@ -128,6 +137,8 @@ export const mockLieux: Lieu[] = [
     sports: ['tennis', 'padel'],
     prixHoraire: 40,
     partenariat: true,
+    imageUrl: U('1554068865-24cecd4e34b8'),
+    // Galerie en assets locaux : assets/clubs/tennis-club-paris-1er/ (voir clubGalleries.ts)
   },
   {
     id: 'lieu2',
@@ -138,6 +149,15 @@ export const mockLieux: Lieu[] = [
     sports: ['padel'],
     prixHoraire: 35,
     partenariat: true,
+    imageUrl: U('1622163642998-1f32b690a933'),
+    gallery: [
+      U('1622163642998-1f32b690a933'),
+      U('1552674605-db6ffd4facb5'),
+      U('1612872087720-bb876e2e67d1'),
+      U('1534438327276-14e5300c3a48'),
+      U('1517836357463-d25dfeac3438'),
+    ],
+    galleryLabels: ['Courts padel', 'Court couvert', 'Arena', 'Installations', 'Entrée'],
   },
 ];
 

@@ -18,6 +18,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Simulation : en production, appeler l'API
     const mockUser: Utilisateur = {
       id: '1',
+      username: 'marie_dupont',
       email,
       nom: 'Dupont',
       prenom: 'Marie',

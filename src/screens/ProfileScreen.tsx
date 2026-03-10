@@ -20,6 +20,9 @@ export function ProfileScreen() {
       <Text style={styles.name}>
         {user.prenom} {user.nom}
       </Text>
+      {user.username ? (
+        <Text style={styles.username}>@{user.username}</Text>
+      ) : null}
       {user.noteMoyenne != null && (
         <Text style={styles.rating}>
           ★ {user.noteMoyenne.toFixed(1)} ({user.nombreAvis} avis)
@@ -94,6 +97,12 @@ const styles = StyleSheet.create({
     color: colors.text,
     textAlign: 'center',
     marginBottom: theme.spacing.xs,
+  },
+  username: {
+    fontSize: theme.fontSize.md,
+    color: colors.primary,
+    textAlign: 'center',
+    marginBottom: theme.spacing.sm,
   },
   rating: {
     fontSize: theme.fontSize.sm,

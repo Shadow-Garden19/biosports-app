@@ -6,7 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { useChatbot } from '../context/ChatbotContext';
 import { useSessions } from '../context/SessionsContext';
-import { mockConversations, mockAccessoires } from '../data/mockData';
+import { useConversations } from '../context/ConversationsContext';
+import { mockAccessoires } from '../data/mockData';
 import { SPORTS_LABELS } from '../types';
 import { ChatbotAssistant } from '../components/ChatbotAssistant';
 import {
@@ -206,14 +207,19 @@ export function AppNavigator() {
 
 function SessionDetailWrapper({ route, navigation }: any) {
   const { sessionId } = route.params;
+  const currentUserId = useAuth().user?.id;
   const { sessions } = useSessions();
+  const { conversations } = useConversations();
   const session = sessions.find((s) => s.id === sessionId);
-  const createurId = session?.createurId;
-  const currentUserId = useAuth().user?.id ?? '1';
-  const conversation = mockConversations.find(
-    (c) => c.participants.includes(currentUserId) && (createurId ? c.participants.includes(createurId) : true)
-  );
-  const conversationId = conversation?.id ?? 'c1';
+  const findChatWith = (userId: string) => {
+    const c = conversations.find(
+      (conv) =>
+        conv.participants.length === 2 &&
+        conv.participants.includes(currentUserId ?? '') &&
+        conv.participants.includes(userId)
+    );
+    return c?.id;
+  };
   return (
     <SessionDetailScreen
       sessionId={sessionId}
@@ -221,7 +227,14 @@ function SessionDetailWrapper({ route, navigation }: any) {
       onBookVenue={(sid, lid) =>
         navigation.navigate('Booking', { lieuId: lid, sessionId: sid })
       }
-      onChat={() => navigation.navigate('Chat', { conversationId })}
+      onChat={(userId) => {
+        const conversationId = findChatWith(userId);
+        if (conversationId) navigation.navigate('Chat', { conversationId });
+      }}
+      onOpenGroupChat={(conversationId) =>
+        navigation.navigate('Chat', { conversationId })
+      }
+      onDeleteSession={() => navigation.goBack()}
     />
   );
 }
@@ -247,11 +260,14 @@ function BookingWrapper({ route, navigation }: any) {
       lieuId={lieuId}
       sessionId={sessionId}
       onBack={() => navigation.goBack()}
-      onConfirm={() => {
+      onConfirm={(conversationId) => {
         if (session) {
           triggerAfterReservation(session.id, session.sportId, SPORTS_LABELS[session.sportId]);
         }
         navigation.goBack();
+        if (conversationId) {
+          navigation.navigate('Chat', { conversationId });
+        }
       }}
     />
   );
