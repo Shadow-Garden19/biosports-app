@@ -116,6 +116,8 @@ export interface Lieu {
   gallery?: string[];
   /** Légendes optionnelles pour chaque image de la galerie (même ordre que gallery). */
   galleryLabels?: string[];
+  /** Texte informatif indiquant quand les réservations sont possibles (ex. "Les terrains seront ouverts pour les réservations à partir du 15 mars 2026."). */
+  messageOuvertureReservations?: string;
 }
 
 export interface Message {

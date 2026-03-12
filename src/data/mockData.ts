@@ -202,6 +202,7 @@ export const mockLieux: Lieu[] = [
       { id: 'lieu2-padel-int', sportId: 'padel', typeTerrain: 'interieur', label: 'Padel couvert', prixHoraire: 0 },
       { id: 'lieu2-bad-int', sportId: 'badminton', typeTerrain: 'interieur', label: 'Badminton couvert', prixHoraire: 0 },
     ],
+    messageOuvertureReservations: 'Les terrains seront ouverts pour les réservations à partir du 1er avril 2026.',
   },
   {
     id: 'lieu3',

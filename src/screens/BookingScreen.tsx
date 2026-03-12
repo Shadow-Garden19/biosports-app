@@ -201,6 +201,12 @@ export function BookingScreen({
         <Text style={styles.lieuName}>{lieu.nom}</Text>
         <Text style={styles.lieuAddress}>{lieu.adresse}</Text>
 
+        {lieu.messageOuvertureReservations ? (
+          <View style={styles.ouvertureResaBox}>
+            <Text style={styles.ouvertureResaText}>{lieu.messageOuvertureReservations}</Text>
+          </View>
+        ) : null}
+
         {prestations ? (
           <>
             <Text style={styles.sectionLabel}>Sport et type de terrain</Text>
@@ -425,6 +431,19 @@ const styles = StyleSheet.create({
   },
   lieuName: { fontSize: theme.fontSize.lg, fontWeight: '600', color: colors.text },
   lieuAddress: { fontSize: theme.fontSize.sm, color: colors.textSecondary, marginTop: 4 },
+  ouvertureResaBox: {
+    marginTop: theme.spacing.md,
+    padding: theme.spacing.sm,
+    backgroundColor: colors.background,
+    borderRadius: theme.borderRadius.sm,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
+  },
+  ouvertureResaText: {
+    fontSize: theme.fontSize.sm,
+    color: colors.textSecondary,
+    fontStyle: 'italic',
+  },
   sectionLabel: {
     fontSize: theme.fontSize.md,
     fontWeight: '600',
