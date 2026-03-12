@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,42 +6,77 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useAuth } from '../context/AuthContext';
+import { useSessions } from '../context/SessionsContext';
 import { colors } from '../theme/colors';
 import { theme } from '../theme';
 import { SPORTS_LABELS, NIVEAUX_LABELS, TYPES_SESSION_LABELS } from '../types';
 import type { SportId, Niveau, TypeSession } from '../types';
-import { mockUsers, mockConversations } from '../data/mockData';
+import type { JourSemaine } from '../types';
 import type { RootStackParamList } from '../navigation/AppNavigator';
+import { mockUsers, mockLieux } from '../data/mockData';
 
 const SPORTS_IDS: SportId[] = [
   'tennis', 'padel', 'basketball', 'football', 'badminton',
   'squash', 'volleyball', 'running', 'musculation', 'autre',
 ];
-const JOURS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'] as const;
+
+const JOURS: JourSemaine[] = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+
+/** Retourne le jour de la semaine (lundi=1 … dimanche=7) pour une date ISO YYYY-MM-DD */
+function getDayOfWeek(dateStr: string): number {
+  const d = new Date(dateStr + 'T12:00:00');
+  const jsDay = d.getDay();
+  return jsDay === 0 ? 7 : jsDay;
+}
+
+/** Map jour français -> numéro (lundi=1, dimanche=7) */
+const JOUR_TO_NUM: Record<JourSemaine, number> = {
+  lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6, dimanche: 7,
+};
 
 export function SearchScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const [sport, setSport] = useState<SportId | null>(null);
-  const [niveau, setNiveau] = useState<Niveau | null>(null);
-  const [jour, setJour] = useState<string | null>(null);
-  const [heure, setHeure] = useState('');
-  const [typeSession, setTypeSession] = useState<TypeSession | null>(null);
+  const { user } = useAuth();
+  const { sessions } = useSessions();
+  const [sport, setSport] = React.useState<SportId | null>(null);
+  const [niveau, setNiveau] = React.useState<Niveau | null>(null);
+  const [jour, setJour] = React.useState<JourSemaine | null>(null);
+  const [heure, setHeure] = React.useState('');
+  const [typeSession, setTypeSession] = React.useState<TypeSession | null>(null);
 
-  const compatibleUsers = mockUsers.filter((u) => {
-    if (sport && !u.sports.some((s) => s.sportId === sport)) return false;
-    if (niveau && !u.sports.some((s) => s.sportId === sport && s.niveau === niveau)) return false;
-    if (jour && !u.disponibilites.some((d) => d.jour === jour)) return false;
-    if (typeSession && !u.preferences.includes(typeSession)) return false;
-    return true;
-  });
+  const matchingSessions = useMemo(() => {
+    return sessions.filter((s) => {
+      if (s.statut !== 'ouverte' && s.statut !== 'complete') return false;
+      if (sport && s.sportId !== sport) return false;
+      if (niveau && s.niveauRecherche !== niveau) return false;
+      if (jour) {
+        const sessionDayNum = getDayOfWeek(s.date);
+        if (sessionDayNum !== JOUR_TO_NUM[jour]) return false;
+      }
+      if (heure.trim()) {
+        const h = heure.trim().replace(/\s/g, '');
+        if (!h.includes(':')) {
+          const hourOnly = h.padStart(2, '0').substring(0, 2);
+          if (!s.heure.startsWith(hourOnly)) return false;
+        } else if (s.heure !== h) {
+          return false;
+        }
+      }
+      if (typeSession && s.typeSession !== typeSession) return false;
+      return true;
+    });
+  }, [sessions, sport, niveau, jour, heure, typeSession]);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Rechercher un partenaire</Text>
+      <Text style={styles.title}>Rechercher une session</Text>
+      <Text style={styles.subtitle}>
+        Indiquez le sport, le jour, l’heure et le niveau pour voir les sessions qui correspondent.
+      </Text>
 
       <Text style={styles.label}>Sport</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsScroll}>
@@ -57,21 +92,6 @@ export function SearchScreen() {
           </TouchableOpacity>
         ))}
       </ScrollView>
-
-      <Text style={styles.label}>Niveau</Text>
-      <View style={styles.chipRow}>
-        {(['debutant', 'intermediaire', 'avance', 'expert'] as Niveau[]).map((n) => (
-          <TouchableOpacity
-            key={n}
-            style={[styles.chip, niveau === n && styles.chipSelected]}
-            onPress={() => setNiveau(niveau === n ? null : n)}
-          >
-            <Text style={[styles.chipText, niveau === n && styles.chipTextSelected]}>
-              {NIVEAUX_LABELS[n]}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
 
       <Text style={styles.label}>Jour</Text>
       <View style={styles.chipRow}>
@@ -91,13 +111,29 @@ export function SearchScreen() {
       <Text style={styles.label}>Heure (ex: 16:00)</Text>
       <TextInput
         style={styles.input}
-        placeholder="16:00"
+        placeholder="14:00"
         placeholderTextColor={colors.textMuted}
         value={heure}
         onChangeText={setHeure}
+        keyboardType="numbers-and-punctuation"
       />
 
-      <Text style={styles.label}>Type</Text>
+      <Text style={styles.label}>Niveau recherché</Text>
+      <View style={styles.chipRow}>
+        {(['debutant', 'intermediaire', 'avance', 'expert'] as Niveau[]).map((n) => (
+          <TouchableOpacity
+            key={n}
+            style={[styles.chip, niveau === n && styles.chipSelected]}
+            onPress={() => setNiveau(niveau === n ? null : n)}
+          >
+            <Text style={[styles.chipText, niveau === n && styles.chipTextSelected]}>
+              {NIVEAUX_LABELS[n]}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <Text style={styles.label}>Type de session</Text>
       <View style={styles.chipRow}>
         {(['match_amical', 'entrainement', 'competition'] as TypeSession[]).map((t) => (
           <TouchableOpacity
@@ -112,55 +148,53 @@ export function SearchScreen() {
         ))}
       </View>
 
-      <TouchableOpacity
-        style={styles.publishButton}
-        onPress={() =>
-          Alert.alert(
-            'Session publiée',
-            'Votre session a été publiée. Consultez l’accueil pour les prochaines étapes.',
-            [{ text: 'OK', onPress: () => (navigation.getParent() as any)?.navigate('Home') }]
-          )
-        }
-      >
-        <Text style={styles.publishButtonText}>Publier une session</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.sectionTitle}>Partenaires compatibles</Text>
-      {compatibleUsers.length === 0 ? (
-        <Text style={styles.empty}>Aucun partenaire trouvé. Ajustez les filtres.</Text>
+      <Text style={styles.sectionTitle}>
+        Sessions correspondantes ({matchingSessions.length})
+      </Text>
+      {matchingSessions.length === 0 ? (
+        <Text style={styles.empty}>
+          Aucune session ne correspond à vos critères. Modifiez les filtres ou créez une session.
+        </Text>
       ) : (
-        compatibleUsers.map((u) => {
-          const conv = mockConversations.find(
-            (c) => c.participants.includes(u.id) && c.participants.includes('1')
-          );
-          const conversationId = conv?.id ?? 'c1';
+        matchingSessions.map((session) => {
+          const isMe = session.createurId === user?.id;
+          const createur = mockUsers.find((u) => u.id === session.createurId);
+          const lieu = session.lieuId
+            ? mockLieux.find((l) => l.id === session.lieuId)
+            : null;
           return (
-          <TouchableOpacity
-            key={u.id}
-            style={styles.userCard}
-            onPress={() => navigation.navigate('Chat', { conversationId })}
-          >
-            <View style={styles.userAvatar}>
-              <Text style={styles.userAvatarText}>
-                {u.prenom[0]}
-                {u.nom[0]}
+            <TouchableOpacity
+              key={session.id}
+              style={styles.sessionCard}
+              onPress={() => navigation.navigate('SessionDetail', { sessionId: session.id })}
+              activeOpacity={0.8}
+            >
+              <View style={styles.sessionHeader}>
+                <Text style={styles.sessionSport}>{SPORTS_LABELS[session.sportId]}</Text>
+                <Text style={styles.sessionType}>{TYPES_SESSION_LABELS[session.typeSession]}</Text>
+              </View>
+              <Text style={styles.sessionDate}>
+                {new Date(session.date).toLocaleDateString('fr-FR', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                })}{' '}
+                à {session.heure}
               </Text>
-            </View>
-            <View style={styles.userInfo}>
-              <Text style={styles.userName}>
-                {u.prenom} {u.nom}
+              <Text style={styles.sessionLevel}>
+                Niveau : {NIVEAUX_LABELS[session.niveauRecherche]}
               </Text>
-              {u.username ? (
-                <Text style={styles.userHandle}>@{u.username}</Text>
-              ) : null}
-              <Text style={styles.userSports}>
-                {u.sports.map((s) => SPORTS_LABELS[s.sportId]).join(', ')}
+              <Text style={styles.sessionLocation}>
+                {session.localisation.ville ?? 'Paris'}
+                {lieu ? ` · ${lieu.nom}` : ''}
               </Text>
-              {u.noteMoyenne != null && (
-                <Text style={styles.userRating}>★ {u.noteMoyenne.toFixed(1)}</Text>
-              )}
-            </View>
-          </TouchableOpacity>
+              <Text style={styles.sessionCreator}>
+                Organisateur : {isMe ? 'Vous' : createur ? `${createur.prenom} ${createur.nom}` : '—'}
+              </Text>
+              <Text style={styles.sessionParticipants}>
+                {session.participantsIds.length} participant(s)
+              </Text>
+            </TouchableOpacity>
           );
         })
       )}
@@ -175,6 +209,11 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.xxl,
     fontWeight: '700',
     color: colors.text,
+    marginBottom: theme.spacing.xs,
+  },
+  subtitle: {
+    fontSize: theme.fontSize.sm,
+    color: colors.textSecondary,
     marginBottom: theme.spacing.lg,
   },
   label: {
@@ -204,16 +243,8 @@ const styles = StyleSheet.create({
     color: colors.text,
     borderWidth: 1,
     borderColor: colors.border,
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
   },
-  publishButton: {
-    backgroundColor: colors.secondary,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
-    alignItems: 'center',
-    marginTop: theme.spacing.lg,
-  },
-  publishButtonText: { color: '#fff', fontWeight: '600' },
   sectionTitle: {
     fontSize: theme.fontSize.lg,
     fontWeight: '600',
@@ -221,10 +252,11 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.xl,
     marginBottom: theme.spacing.sm,
   },
-  empty: { color: colors.textMuted },
-  userCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  empty: {
+    color: colors.textMuted,
+    fontSize: theme.fontSize.md,
+  },
+  sessionCard: {
     backgroundColor: colors.surface,
     borderRadius: theme.borderRadius.md,
     padding: theme.spacing.md,
@@ -232,19 +264,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  userAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: theme.spacing.md,
-  },
-  userAvatarText: { color: '#fff', fontWeight: '600' },
-  userInfo: { flex: 1 },
-  userName: { fontSize: theme.fontSize.md, fontWeight: '600', color: colors.text },
-  userHandle: { fontSize: theme.fontSize.sm, color: colors.primary, marginTop: 2 },
-  userSports: { fontSize: theme.fontSize.sm, color: colors.textSecondary },
-  userRating: { fontSize: theme.fontSize.sm, color: colors.secondary, marginTop: 2 },
+  sessionHeader: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm, marginBottom: 4 },
+  sessionSport: { fontSize: theme.fontSize.lg, fontWeight: '700', color: colors.text },
+  sessionType: { fontSize: theme.fontSize.sm, color: colors.primary },
+  sessionDate: { fontSize: theme.fontSize.md, color: colors.text },
+  sessionLevel: { fontSize: theme.fontSize.sm, color: colors.textSecondary, marginTop: 2 },
+  sessionLocation: { fontSize: theme.fontSize.sm, color: colors.textMuted, marginTop: 2 },
+  sessionCreator: { fontSize: theme.fontSize.sm, color: colors.textSecondary, marginTop: 4 },
+  sessionParticipants: { fontSize: theme.fontSize.xs, color: colors.textMuted, marginTop: 2 },
 });

@@ -245,6 +245,7 @@ function ChatWrapper({ route, navigation }: any) {
     <ChatScreen
       conversationId={conversationId}
       onBack={() => navigation.goBack()}
+      onCreateSession={() => navigation.navigate('CreateSession')}
     />
   );
 }

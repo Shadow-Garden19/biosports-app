@@ -9,6 +9,7 @@ import {
   Modal,
   Switch,
   Alert,
+  Platform,
 } from 'react-native';
 import { colors } from '../theme/colors';
 import { theme } from '../theme';
@@ -85,21 +86,28 @@ export function SessionDetailScreen({
 
   const handleDeleteSession = () => {
     if (!session || !isCreateur) return;
-    Alert.alert(
-      'Supprimer la session',
-      'Êtes-vous sûr de vouloir supprimer cette session ? Cette action est irréversible.',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Supprimer',
-          style: 'destructive',
-          onPress: () => {
-            removeSession(sessionId);
-            onDeleteSession?.();
+    const doDelete = () => {
+      removeSession(sessionId);
+      onDeleteSession?.();
+    };
+    if (Platform.OS === 'web') {
+      if (window.confirm('Êtes-vous sûr de vouloir supprimer cette session ? Cette action est irréversible.')) {
+        doDelete();
+      }
+    } else {
+      Alert.alert(
+        'Supprimer la session',
+        'Êtes-vous sûr de vouloir supprimer cette session ? Cette action est irréversible.',
+        [
+          { text: 'Annuler', style: 'cancel' },
+          {
+            text: 'Supprimer',
+            style: 'destructive',
+            onPress: doDelete,
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   };
 
   if (!session) {

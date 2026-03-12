@@ -18,9 +18,11 @@ import { mockUsers } from '../data/mockData';
 export function ChatScreen({
   conversationId,
   onBack,
+  onCreateSession,
 }: {
   conversationId: string;
   onBack: () => void;
+  onCreateSession?: () => void;
 }) {
   const { user } = useAuth();
   const { conversations, getMessages, addMessage } = useConversations();
@@ -103,6 +105,11 @@ export function ChatScreen({
         contentContainerStyle={styles.messages}
         onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
       />
+      {onCreateSession && (
+        <TouchableOpacity style={styles.createSessionBtn} onPress={onCreateSession} activeOpacity={0.8}>
+          <Text style={styles.createSessionBtnText}>+ Créer une session</Text>
+        </TouchableOpacity>
+      )}
       <View style={styles.inputRow}>
         <TextInput
           style={styles.input}
@@ -132,6 +139,16 @@ const styles = StyleSheet.create({
   },
   backText: { color: colors.primary, fontSize: theme.fontSize.md, marginRight: theme.spacing.md },
   headerTitle: { fontSize: theme.fontSize.lg, fontWeight: '600', color: colors.text },
+  createSessionBtn: {
+    backgroundColor: colors.primary,
+    marginHorizontal: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+  },
+  createSessionBtnText: { color: '#fff', fontWeight: '600', fontSize: theme.fontSize.sm },
   messages: { padding: theme.spacing.md, paddingBottom: theme.spacing.md },
   messageRow: { marginBottom: theme.spacing.sm, alignItems: 'flex-start' },
   messageRowMe: { alignItems: 'flex-end' },
