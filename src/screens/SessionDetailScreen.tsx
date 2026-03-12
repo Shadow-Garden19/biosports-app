@@ -304,8 +304,9 @@ export function SessionDetailScreen({
             <Text style={styles.lieuName}>{lieu.nom}</Text>
             <Text style={styles.lieuAddress}>{lieu.adresse}</Text>
             <Text style={styles.lieuPrice}>
-              {lieu.prixHoraire} € / heure (part :{' '}
-              {(lieu.prixHoraire / Math.max(1, session.participantsIds.length)).toFixed(0)} €)
+              {lieu.prixHoraire > 0
+                ? `${lieu.prixHoraire} € / heure (part : ${(lieu.prixHoraire / Math.max(1, session.participantsIds.length)).toFixed(0)} €)`
+                : 'Voir tarifs sur le site du club'}
             </Text>
             <TouchableOpacity
               style={styles.bookButton}
@@ -324,7 +325,9 @@ export function SessionDetailScreen({
             <View key={l.id} style={styles.lieuCard}>
               <Text style={styles.lieuName}>{l.nom}</Text>
               <Text style={styles.lieuAddress}>{l.adresse}</Text>
-              <Text style={styles.lieuPrice}>{l.prixHoraire} € / heure</Text>
+              <Text style={styles.lieuPrice}>
+                {l.prixHoraire > 0 ? `${l.prixHoraire} € / heure` : 'Voir tarifs sur le site du club'}
+              </Text>
               <TouchableOpacity
                 style={styles.bookButton}
                 onPress={() => onBookVenue?.(session.id, l.id)}

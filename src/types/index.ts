@@ -82,6 +82,22 @@ export interface SessionSportive {
   createdAt: string;
 }
 
+/** Intérieur ou extérieur */
+export type TypeTerrain = 'interieur' | 'exterieur';
+
+/** Type de sol (tennis, etc.) — le prix peut varier */
+export type TypeSol = 'terre_battue' | 'beton' | 'gazon' | 'synthetique' | 'autre';
+
+/** Une option de réservation (sport + type terrain/sol + prix) */
+export interface PrestationLieu {
+  id: string;
+  sportId: SportId;
+  typeTerrain: TypeTerrain;
+  typeSol?: TypeSol;
+  label: string;
+  prixHoraire: number;
+}
+
 export interface Lieu {
   id: string;
   nom: string;
@@ -89,8 +105,11 @@ export interface Lieu {
   adresse: string;
   localisation: Localisation;
   sports: SportId[];
+  /** Prix par défaut si pas de prestations */
   prixHoraire: number;
   partenariat: boolean;
+  /** Sport + type de terrain/sol avec prix (choix avant réservation) */
+  prestations?: PrestationLieu[];
   /** Photo principale (liste des lieux, couverture). */
   imageUrl?: string;
   /** Galerie d’images du club (terrains, club house, installations) pour la fiche club. */
@@ -175,4 +194,17 @@ export const TYPES_SESSION_LABELS: Record<TypeSession, string> = {
   match_amical: 'Match amical',
   entrainement: 'Entraînement',
   competition: 'Compétition',
+};
+
+export const TYPE_TERRAIN_LABELS: Record<TypeTerrain, string> = {
+  interieur: 'Intérieur',
+  exterieur: 'Extérieur',
+};
+
+export const TYPE_SOL_LABELS: Record<TypeSol, string> = {
+  terre_battue: 'Terre battue',
+  beton: 'Béton',
+  gazon: 'Gazon',
+  synthetique: 'Synthétique',
+  autre: 'Autre',
 };

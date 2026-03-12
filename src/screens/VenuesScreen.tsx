@@ -76,7 +76,9 @@ export function VenuesScreen() {
                 </View>
               ))}
             </View>
-            <Text style={styles.cardPrice}>{lieu.prixHoraire} € / heure</Text>
+            <Text style={styles.cardPrice}>
+              {lieu.prixHoraire > 0 ? `${lieu.prixHoraire} € / heure` : 'Voir tarifs sur le site du club'}
+            </Text>
           </View>
         </TouchableOpacity>
       ))}

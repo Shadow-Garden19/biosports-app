@@ -159,8 +159,8 @@ export const mockSessions: SessionSportive[] = [
 ];
 
 // Galeries spécifiques à chaque club (photos web – terrains, installations, club house, entrée)
-// Tennis Club Paris 1er : courts tennis, court padel, installations type club
-// Padel Arena : courts padel, salles indoor, espaces communs
+// Lieux : ne mettre que les prix affichés sur le site officiel du club (jamais de prix au pif).
+// Si le tarif n'est pas publié en ligne, mettre 0 → l'app affichera "Voir tarifs sur le site du club".
 const U = (id: string) => `https://images.unsplash.com/photo-${id}?w=800`;
 
 export const mockLieux: Lieu[] = [
@@ -171,10 +171,14 @@ export const mockLieux: Lieu[] = [
     adresse: '12 Rue du Sport, 75001 Paris',
     localisation: { latitude: 48.857, longitude: 2.353, ville: 'Paris' },
     sports: ['tennis', 'padel'],
-    prixHoraire: 40,
+    prixHoraire: 0,
     partenariat: true,
     imageUrl: U('1554068865-24cecd4e34b8'),
-    // Galerie en assets locaux : assets/clubs/tennis-club-paris-1er/ (voir clubGalleries.ts)
+    prestations: [
+      { id: 'lieu1-tennis-int', sportId: 'tennis', typeTerrain: 'interieur', label: 'Tennis intérieur', prixHoraire: 0 },
+      { id: 'lieu1-tennis-ext', sportId: 'tennis', typeTerrain: 'exterieur', label: 'Tennis extérieur', prixHoraire: 0 },
+      { id: 'lieu1-padel-int', sportId: 'padel', typeTerrain: 'interieur', label: 'Padel intérieur', prixHoraire: 0 },
+    ],
   },
   {
     id: 'lieu2',
@@ -182,8 +186,8 @@ export const mockLieux: Lieu[] = [
     type: 'club',
     adresse: '5 Avenue des Jeux, 75002 Paris',
     localisation: { latitude: 48.859, longitude: 2.355, ville: 'Paris' },
-    sports: ['padel'],
-    prixHoraire: 35,
+    sports: ['padel', 'badminton'],
+    prixHoraire: 0,
     partenariat: true,
     imageUrl: U('1622163642998-1f32b690a933'),
     gallery: [
@@ -194,6 +198,25 @@ export const mockLieux: Lieu[] = [
       U('1517836357463-d25dfeac3438'),
     ],
     galleryLabels: ['Courts padel', 'Court couvert', 'Arena', 'Installations', 'Entrée'],
+    prestations: [
+      { id: 'lieu2-padel-int', sportId: 'padel', typeTerrain: 'interieur', label: 'Padel couvert', prixHoraire: 0 },
+      { id: 'lieu2-bad-int', sportId: 'badminton', typeTerrain: 'interieur', label: 'Badminton couvert', prixHoraire: 0 },
+    ],
+  },
+  {
+    id: 'lieu3',
+    nom: 'Tennis du Fruit Défendu',
+    type: 'club',
+    adresse: '82 boulevard de Bellerive, 92500 Rueil-Malmaison',
+    localisation: { latitude: 48.876, longitude: 2.189, ville: 'Rueil-Malmaison', codePostal: '92500' },
+    sports: ['tennis'],
+    prixHoraire: 25,
+    partenariat: true,
+    imageUrl: U('1554068865-24cecd4e34b8'),
+    prestations: [
+      { id: 'lieu3-tb-int', sportId: 'tennis', typeTerrain: 'interieur', typeSol: 'terre_battue', label: 'Tennis terre battue intérieur', prixHoraire: 28 },
+      { id: 'lieu3-bet-ext', sportId: 'tennis', typeTerrain: 'exterieur', typeSol: 'beton', label: 'Tennis béton extérieur', prixHoraire: 22 },
+    ],
   },
 ];
 
