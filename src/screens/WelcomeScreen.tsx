@@ -99,6 +99,8 @@ export function WelcomeScreen({ onLogin, onGoToRegister }: WelcomeScreenProps) {
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
+            accessibilityLabel="Adresse email"
+            accessibilityHint="Saisissez votre adresse email pour vous connecter"
           />
           <TextInput
             style={styles.input}
@@ -107,12 +109,16 @@ export function WelcomeScreen({ onLogin, onGoToRegister }: WelcomeScreenProps) {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            accessibilityLabel="Mot de passe"
+            accessibilityHint="Saisissez votre mot de passe"
           />
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+          {error ? <Text style={styles.error} accessibilityLiveRegion="polite">{error}</Text> : null}
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
             onPress={handleLogin}
             disabled={loading}
+            accessibilityRole="button"
+            accessibilityLabel={loading ? 'Connexion en cours' : 'Se connecter'}
           >
             {loading ? (
               <ActivityIndicator color="#0D0D0D" />
@@ -120,7 +126,7 @@ export function WelcomeScreen({ onLogin, onGoToRegister }: WelcomeScreenProps) {
               <Text style={styles.buttonText}>Se connecter</Text>
             )}
           </TouchableOpacity>
-          <TouchableOpacity style={styles.link} onPress={onGoToRegister}>
+          <TouchableOpacity style={styles.link} onPress={onGoToRegister} accessibilityRole="button" accessibilityLabel="Pas encore de compte, s'inscrire">
             <Text style={styles.linkText}>Pas encore de compte ? S'inscrire</Text>
           </TouchableOpacity>
         </Animated.View>

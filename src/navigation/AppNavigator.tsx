@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -9,7 +10,9 @@ import { useSessions } from '../context/SessionsContext';
 import { useConversations } from '../context/ConversationsContext';
 import { mockAccessoires } from '../data/mockData';
 import { SPORTS_LABELS } from '../types';
+import { colors } from '../theme/colors';
 import { ChatbotAssistant } from '../components/ChatbotAssistant';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   OnboardingScreen,
   WelcomeScreen,
@@ -30,12 +33,13 @@ import {
 export type RootStackParamList = {
   Auth: undefined;
   Register: undefined;
-  Main: undefined;
+  Main: { screen?: keyof MainTabParamList } | undefined;
   SessionDetail: { sessionId: string };
   CreateSession: undefined;
   Chat: { conversationId: string };
   Booking: { lieuId: string; sessionId?: string };
   Achat: { productId: string };
+  Onboarding: undefined;
 };
 
 export type MainTabParamList = {
@@ -56,9 +60,9 @@ function MainTabs() {
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: '#C9A227',
-          tabBarInactiveTintColor: '#808080',
-          tabBarStyle: { paddingBottom: 4, height: 56, backgroundColor: '#1A1A1A', borderTopColor: '#333' },
+          tabBarActiveTintColor: colors.primary,
+          tabBarInactiveTintColor: colors.textMuted,
+          tabBarStyle: { paddingBottom: 4, height: 56, backgroundColor: colors.surface, borderTopColor: colors.border },
         }}
       >
         <Tab.Screen
@@ -128,9 +132,17 @@ function MainTabs() {
 }
 
 export function AppNavigator() {
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, login, isLoading } = useAuth();
   const [showRegister, setShowRegister] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(true);
+
+  if (isLoading) {
+    return (
+      <View style={navStyles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
@@ -205,7 +217,7 @@ export function AppNavigator() {
   );
 }
 
-function SessionDetailWrapper({ route, navigation }: any) {
+function SessionDetailWrapper({ route, navigation }: NativeStackScreenProps<RootStackParamList, 'SessionDetail'>) {
   const { sessionId } = route.params;
   const currentUserId = useAuth().user?.id;
   const { sessions } = useSessions();
@@ -239,7 +251,7 @@ function SessionDetailWrapper({ route, navigation }: any) {
   );
 }
 
-function ChatWrapper({ route, navigation }: any) {
+function ChatWrapper({ route, navigation }: NativeStackScreenProps<RootStackParamList, 'Chat'>) {
   const { conversationId } = route.params;
   return (
     <ChatScreen
@@ -250,7 +262,7 @@ function ChatWrapper({ route, navigation }: any) {
   );
 }
 
-function BookingWrapper({ route, navigation }: any) {
+function BookingWrapper({ route, navigation }: NativeStackScreenProps<RootStackParamList, 'Booking'>) {
   const { lieuId, sessionId } = route.params || {};
   const { triggerAfterReservation } = useChatbot();
   const { sessions } = useSessions();
@@ -274,14 +286,14 @@ function BookingWrapper({ route, navigation }: any) {
   );
 }
 
-function CreateSessionWrapper({ navigation }: any) {
+function CreateSessionWrapper({ navigation }: NativeStackScreenProps<RootStackParamList, 'CreateSession'>) {
   return (
     <CreateSessionScreen onBack={() => navigation.goBack()} />
   );
 }
 
-function AchatWrapper({ route, navigation }: any) {
-  const { productId } = route.params || {};
+function AchatWrapper({ route, navigation }: NativeStackScreenProps<RootStackParamList, 'Achat'>) {
+  const { productId } = route.params ?? {};
   const product = mockAccessoires.find((a: { id: string }) => a.id === productId) || null;
   return (
     <AchatScreen
@@ -291,3 +303,12 @@ function AchatWrapper({ route, navigation }: any) {
     />
   );
 }
+
+const navStyles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+  },
+});

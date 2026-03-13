@@ -168,6 +168,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   bubbleMe: { backgroundColor: colors.primary },
+  bubbleOther: {},
   bubbleText: { color: colors.text },
   bubbleTextMe: { color: '#fff' },
   inputRow: {

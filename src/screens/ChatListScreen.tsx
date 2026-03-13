@@ -7,6 +7,7 @@ import { colors } from '../theme/colors';
 import { theme } from '../theme';
 import { SPORTS_LABELS } from '../types';
 import { useConversations } from '../context/ConversationsContext';
+import { EmptyState } from '../components/EmptyState';
 import { mockUsers } from '../data/mockData';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 
@@ -120,7 +121,13 @@ export function ChatListScreen() {
       {conversations.length === 0 ? (
         <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
           {renderHeader()}
-          <Text style={styles.empty}>Aucune conversation.</Text>
+          <EmptyState
+            icon="chatbubbles-outline"
+            title="Aucune conversation"
+            message="Recherchez des sessions et contactez les organisateurs, ou ajoutez un ami par son @nom_utilisateur ci-dessus."
+            actionLabel="Voir les sessions"
+            onAction={() => (navigation.getParent() as any)?.navigate('Search')}
+          />
         </ScrollView>
       ) : (
         <FlatList
@@ -218,9 +225,4 @@ const styles = StyleSheet.create({
   body: { flex: 1 },
   name: { fontSize: theme.fontSize.md, fontWeight: '600', color: colors.text },
   preview: { fontSize: theme.fontSize.sm, color: colors.textSecondary, marginTop: 2 },
-  empty: {
-    color: colors.textMuted,
-    fontSize: theme.fontSize.md,
-    padding: theme.spacing.lg,
-  },
 });

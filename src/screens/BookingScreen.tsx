@@ -19,6 +19,7 @@ import { useClubBooking } from '../context/ClubBookingContext';
 import { useConversations } from '../context/ConversationsContext';
 import { useSessions } from '../context/SessionsContext';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { mockUsers } from '../data/mockData';
 import {
   TENNIS_CLUB_PARIS_1ER_ID,
@@ -44,6 +45,7 @@ export function BookingScreen({
   onBack: () => void;
 }) {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const { venues, createReservation, reserving, error, getAvailability } = useClubBooking();
   const { addConversation } = useConversations();
   const { updateSession } = useSessions();
@@ -128,6 +130,7 @@ export function BookingScreen({
       const message =
         result.message ||
         'Votre réservation a bien été enregistrée dans le planning du club. Vous recevrez un rappel avant la session.';
+      showToast('Réservation enregistrée');
       const groupInfo = newConversationId
         ? '\n\nUn groupe de discussion a été créé avec les participants.'
         : '';

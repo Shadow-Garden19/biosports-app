@@ -11,6 +11,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import { useSessions } from '../context/SessionsContext';
+import { useLocation } from '../context/LocationContext';
+import { EmptyState } from '../components/EmptyState';
 import { colors } from '../theme/colors';
 import { theme } from '../theme';
 import { SPORTS_LABELS, NIVEAUX_LABELS, TYPES_SESSION_LABELS } from '../types';
@@ -18,6 +20,7 @@ import type { SportId, Niveau, TypeSession } from '../types';
 import type { JourSemaine } from '../types';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 import { mockUsers, mockLieux } from '../data/mockData';
+import { getDistanceKm, formatDistance } from '../utils/geolocation';
 
 const SPORTS_IDS: SportId[] = [
   'tennis', 'padel', 'basketball', 'football', 'badminton',
@@ -38,18 +41,22 @@ const JOUR_TO_NUM: Record<JourSemaine, number> = {
   lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6, dimanche: 7,
 };
 
+const RADIUS_KM_OPTIONS = [5, 10, 25, 50] as const;
+
 export function SearchScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { user } = useAuth();
   const { sessions } = useSessions();
+  const { position } = useLocation();
   const [sport, setSport] = React.useState<SportId | null>(null);
   const [niveau, setNiveau] = React.useState<Niveau | null>(null);
   const [jour, setJour] = React.useState<JourSemaine | null>(null);
   const [heure, setHeure] = React.useState('');
   const [typeSession, setTypeSession] = React.useState<TypeSession | null>(null);
+  const [radiusKm, setRadiusKm] = React.useState<number | null>(null);
 
   const matchingSessions = useMemo(() => {
-    return sessions.filter((s) => {
+    let list = sessions.filter((s) => {
       if (s.statut !== 'ouverte' && s.statut !== 'complete') return false;
       if (sport && s.sportId !== sport) return false;
       if (niveau && s.niveauRecherche !== niveau) return false;
@@ -67,9 +74,21 @@ export function SearchScreen() {
         }
       }
       if (typeSession && s.typeSession !== typeSession) return false;
+      if (radiusKm != null && position) {
+        const d = getDistanceKm(position.latitude, position.longitude, s.localisation.latitude, s.localisation.longitude);
+        if (d > radiusKm) return false;
+      }
       return true;
     });
-  }, [sessions, sport, niveau, jour, heure, typeSession]);
+    if (position) {
+      list = [...list].sort((a, b) => {
+        const da = getDistanceKm(position.latitude, position.longitude, a.localisation.latitude, a.localisation.longitude);
+        const db = getDistanceKm(position.latitude, position.longitude, b.localisation.latitude, b.localisation.longitude);
+        return da - db;
+      });
+    }
+    return list;
+  }, [sessions, sport, niveau, jour, heure, typeSession, radiusKm, position]);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -148,13 +167,36 @@ export function SearchScreen() {
         ))}
       </View>
 
+      {position && (
+        <>
+          <Text style={styles.label}>Rayon (km)</Text>
+          <View style={styles.chipRow}>
+            {RADIUS_KM_OPTIONS.map((r) => (
+              <TouchableOpacity
+                key={r}
+                style={[styles.chip, radiusKm === r && styles.chipSelected]}
+                onPress={() => setRadiusKm(radiusKm === r ? null : r)}
+              >
+                <Text style={[styles.chipText, radiusKm === r && styles.chipTextSelected]}>
+                  {r} km
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </>
+      )}
+
       <Text style={styles.sectionTitle}>
         Sessions correspondantes ({matchingSessions.length})
       </Text>
       {matchingSessions.length === 0 ? (
-        <Text style={styles.empty}>
-          Aucune session ne correspond à vos critères. Modifiez les filtres ou créez une session.
-        </Text>
+        <EmptyState
+          icon="search-outline"
+          title="Aucun résultat"
+          message="Aucune session ne correspond à vos critères. Élargissez les filtres ou créez une session."
+          actionLabel="Créer une session"
+          onAction={() => navigation.navigate('CreateSession')}
+        />
       ) : (
         matchingSessions.map((session) => {
           const isMe = session.createurId === user?.id;
@@ -187,6 +229,11 @@ export function SearchScreen() {
               <Text style={styles.sessionLocation}>
                 {session.localisation.ville ?? 'Paris'}
                 {lieu ? ` · ${lieu.nom}` : ''}
+                {position && (
+                  <Text style={styles.sessionDistance}>
+                    {' '}· {formatDistance(getDistanceKm(position.latitude, position.longitude, session.localisation.latitude, session.localisation.longitude))}
+                  </Text>
+                )}
               </Text>
               <Text style={styles.sessionCreator}>
                 Organisateur : {isMe ? 'Vous' : createur ? `${createur.prenom} ${createur.nom}` : '—'}
@@ -270,6 +317,7 @@ const styles = StyleSheet.create({
   sessionDate: { fontSize: theme.fontSize.md, color: colors.text },
   sessionLevel: { fontSize: theme.fontSize.sm, color: colors.textSecondary, marginTop: 2 },
   sessionLocation: { fontSize: theme.fontSize.sm, color: colors.textMuted, marginTop: 2 },
+  sessionDistance: { fontSize: theme.fontSize.sm, color: colors.primary },
   sessionCreator: { fontSize: theme.fontSize.sm, color: colors.textSecondary, marginTop: 4 },
   sessionParticipants: { fontSize: theme.fontSize.xs, color: colors.textMuted, marginTop: 2 },
 });

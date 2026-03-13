@@ -1,5 +1,8 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Utilisateur } from '../types';
+
+const STORAGE_KEY = '@biosports_user';
 
 interface AuthContextType {
   user: Utilisateur | null;
@@ -7,15 +10,39 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   updateProfile: (updates: Partial<Utilisateur>) => void;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<Utilisateur | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    AsyncStorage.getItem(STORAGE_KEY)
+      .then((raw) => {
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw) as Utilisateur;
+            setUser(parsed);
+          } catch {
+            AsyncStorage.removeItem(STORAGE_KEY);
+          }
+        }
+      })
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const persistUser = useCallback((u: Utilisateur | null) => {
+    if (u) {
+      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(u));
+    } else {
+      AsyncStorage.removeItem(STORAGE_KEY);
+    }
+  }, []);
 
   const login = useCallback(async (email: string, _password: string) => {
-    // Simulation : en production, appeler l'API
     const mockUser: Utilisateur = {
       id: '1',
       username: 'marie_dupont',
@@ -38,13 +65,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setUser(mockUser);
-  }, []);
+    persistUser(mockUser);
+  }, [persistUser]);
 
-  const logout = useCallback(() => setUser(null), []);
+  const logout = useCallback(() => {
+    setUser(null);
+    persistUser(null);
+  }, [persistUser]);
 
   const updateProfile = useCallback((updates: Partial<Utilisateur>) => {
-    setUser((prev) => (prev ? { ...prev, ...updates } : null));
-  }, []);
+    setUser((prev) => {
+      if (!prev) return null;
+      const next = { ...prev, ...updates };
+      persistUser(next);
+      return next;
+    });
+  }, [persistUser]);
 
   return (
     <AuthContext.Provider
@@ -54,6 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         logout,
         updateProfile,
+        isLoading,
       }}
     >
       {children}

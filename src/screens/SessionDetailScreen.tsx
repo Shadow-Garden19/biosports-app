@@ -17,6 +17,7 @@ import { SPORTS_LABELS, NIVEAUX_LABELS, TYPES_SESSION_LABELS } from '../types';
 import { useSessions } from '../context/SessionsContext';
 import { useAuth } from '../context/AuthContext';
 import { useConversations } from '../context/ConversationsContext';
+import { useToast } from '../context/ToastContext';
 import { mockLieux, mockUsers } from '../data/mockData';
 
 export function SessionDetailScreen({
@@ -39,6 +40,7 @@ export function SessionDetailScreen({
   const { user } = useAuth();
   const { sessions, addParticipant, removeParticipant, setCanInvite, removeSession } = useSessions();
   const { conversations, updateConversationParticipants } = useConversations();
+  const { showToast } = useToast();
   const [addSearch, setAddSearch] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -73,6 +75,7 @@ export function SessionDetailScreen({
     }
     setShowAddModal(false);
     setAddSearch('');
+    showToast('Partenaire ajouté à la session');
   };
 
   const handleRemoveParticipant = (userId: string) => {

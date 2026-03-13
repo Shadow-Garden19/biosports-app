@@ -88,8 +88,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     ...(Platform.OS === 'web' && {
       position: 'fixed' as any,
-      width: '100vw',
-      height: '100vh',
+      width: '100vw' as any,
+      height: '100vh' as any,
     }),
   },
   background: {

@@ -8,12 +8,15 @@ import {
   Modal,
   Pressable,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import { useSessions } from '../context/SessionsContext';
+import { useLocation } from '../context/LocationContext';
 import { Logo } from '../components/Logo';
+import { EmptyState } from '../components/EmptyState';
 import { colors } from '../theme/colors';
 import { theme } from '../theme';
 import { SPORTS_LABELS } from '../types';
@@ -23,6 +26,7 @@ import type { RootStackParamList } from '../navigation/AppNavigator';
 import type { SessionSportive } from '../types';
 import { BALLES_TENNIS_IMAGE } from '../constants/images';
 import { mockUsers } from '../data/mockData';
+import { getDistanceKm, formatDistance } from '../utils/geolocation';
 
 const SPORTS_FILTER: SportId[] = [
   'tennis', 'padel', 'basketball', 'football', 'badminton', 'running',
@@ -32,12 +36,27 @@ export function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { user } = useAuth();
   const { sessions } = useSessions();
+  const { position } = useLocation();
   const [selectedSport, setSelectedSport] = useState<SportId | null>(null);
   const [modalDate, setModalDate] = useState<string | null>(null);
 
-  const sessionsFiltered = sessions.filter(
-    (s) => !selectedSport || s.sportId === selectedSport
-  );
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+
+  const sessionsFiltered = useMemo(() => {
+    let list = sessions.filter(
+      (s) => (s.statut === 'ouverte' || s.statut === 'complete') && s.date >= todayStr
+    );
+    if (selectedSport) list = list.filter((s) => s.sportId === selectedSport);
+    if (position) {
+      list = [...list].sort((a, b) => {
+        const da = getDistanceKm(position.latitude, position.longitude, a.localisation.latitude, a.localisation.longitude);
+        const db = getDistanceKm(position.latitude, position.longitude, b.localisation.latitude, b.localisation.longitude);
+        return da - db;
+      });
+    }
+    return list;
+  }, [sessions, selectedSport, position]);
 
   const mySessionDates = useMemo(() => {
     const userId = user?.id ?? '1';
@@ -151,38 +170,93 @@ export function HomeScreen() {
 
       <Text style={styles.sectionTitle}>Sessions à proximité</Text>
       {sessionsFiltered.length === 0 ? (
-        <Text style={styles.empty}>Aucune session pour le moment.</Text>
+        <EmptyState
+          icon="calendar-outline"
+          title="Aucune session à proximité"
+          message="Modifiez le filtre sport ou créez une session pour inviter des partenaires."
+          actionLabel="Créer une session"
+          onAction={() => navigation.navigate('CreateSession')}
+        />
       ) : (
-        sessionsFiltered.map((session) => (
-          <TouchableOpacity
-            key={session.id}
-            style={styles.card}
-            onPress={() => navigation.navigate('SessionDetail', { sessionId: session.id })}
-            activeOpacity={0.8}
-          >
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardSport}>{SPORTS_LABELS[session.sportId]}</Text>
-              <Text style={styles.cardType}>
-                {TYPES_SESSION_LABELS[session.typeSession]}
+        sessionsFiltered.map((session) => {
+          const distanceKm = position
+            ? getDistanceKm(position.latitude, position.longitude, session.localisation.latitude, session.localisation.longitude)
+            : null;
+          return (
+            <TouchableOpacity
+              key={session.id}
+              style={styles.card}
+              onPress={() => navigation.navigate('SessionDetail', { sessionId: session.id })}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={`Session ${SPORTS_LABELS[session.sportId]} le ${session.date} à ${session.heure}`}
+            >
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardSport}>{SPORTS_LABELS[session.sportId]}</Text>
+                <Text style={styles.cardType}>
+                  {TYPES_SESSION_LABELS[session.typeSession]}
+                </Text>
+              </View>
+              <Text style={styles.cardDate}>
+                {new Date(session.date).toLocaleDateString('fr-FR', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                })}{' '}
+                à {session.heure}
               </Text>
-            </View>
-            <Text style={styles.cardDate}>
-              {new Date(session.date).toLocaleDateString('fr-FR', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-              })}{' '}
-              à {session.heure}
-            </Text>
-            <Text style={styles.cardLevel}>
-              Niveau : {NIVEAUX_LABELS[session.niveauRecherche]}
-            </Text>
-            <Text style={styles.cardLocation}>
-              {session.localisation.ville ?? 'Paris'}
-            </Text>
-          </TouchableOpacity>
-        ))
+              <Text style={styles.cardLevel}>
+                Niveau : {NIVEAUX_LABELS[session.niveauRecherche]}
+              </Text>
+              <View style={styles.cardLocationRow}>
+                <Text style={styles.cardLocation}>
+                  {session.localisation.ville ?? 'Paris'}
+                </Text>
+                {distanceKm !== null && (
+                  <Text style={styles.cardDistance}> · {formatDistance(distanceKm)}</Text>
+                )}
+              </View>
+            </TouchableOpacity>
+          );
+        })
       )}
+
+      {(() => {
+        const userId = user?.id ?? '1';
+        const pastSessions = sessions
+          .filter((s) => s.date < todayStr && s.participantsIds.includes(userId))
+          .sort((a, b) => b.date.localeCompare(a.date))
+          .slice(0, 5);
+        if (pastSessions.length === 0) return null;
+        return (
+          <>
+            <Text style={styles.sectionTitle}>Historique</Text>
+            <Text style={styles.chartSubtitle}>Vos dernières sessions passées</Text>
+            {pastSessions.map((session) => (
+              <TouchableOpacity
+                key={session.id}
+                style={styles.card}
+                onPress={() => navigation.navigate('SessionDetail', { sessionId: session.id })}
+                activeOpacity={0.8}
+              >
+                <View style={styles.cardHeader}>
+                  <Text style={styles.cardSport}>{SPORTS_LABELS[session.sportId]}</Text>
+                  <Text style={styles.cardType}>{TYPES_SESSION_LABELS[session.typeSession]}</Text>
+                </View>
+                <Text style={styles.cardDate}>
+                  {new Date(session.date).toLocaleDateString('fr-FR', {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'short',
+                  })}{' '}
+                  à {session.heure}
+                </Text>
+                <Text style={styles.cardLocation}>{session.localisation.ville ?? 'Paris'}</Text>
+              </TouchableOpacity>
+            ))}
+          </>
+        );
+      })()}
 
       <Text style={styles.sectionTitle}>Jours joués</Text>
       <Text style={styles.chartSubtitle}>Clique sur un jour pour voir les sessions</Text>
@@ -383,8 +457,9 @@ const styles = StyleSheet.create({
   cardType: { fontSize: theme.fontSize.sm, color: colors.primary },
   cardDate: { fontSize: theme.fontSize.sm, color: colors.textSecondary },
   cardLevel: { fontSize: theme.fontSize.sm, color: colors.text },
-  cardLocation: { fontSize: theme.fontSize.sm, color: colors.textMuted, marginTop: 4 },
-  empty: { color: colors.textMuted, fontSize: theme.fontSize.md },
+  cardLocationRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 4 },
+  cardLocation: { fontSize: theme.fontSize.sm, color: colors.textMuted },
+  cardDistance: { fontSize: theme.fontSize.sm, color: colors.primary },
   createSessionBtn: {
     backgroundColor: colors.surface,
     borderRadius: theme.borderRadius.md,
